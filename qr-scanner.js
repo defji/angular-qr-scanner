@@ -13,11 +13,30 @@ angular.module('qrScanner', ["ng"]).directive('qrScanner', ['$interval', '$windo
     
       window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
       navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-    
+
+
+      function gotSources(sourceInfos) {
+        for (var i = 0; i !== sourceInfos.length; ++i) {
+          var sourceInfo = sourceInfos[i];
+          var option = document.createElement('option');
+          option.value = sourceInfo.id;
+          if (sourceInfo.kind === 'video') {
+            option.text = sourceInfo.label || 'Kamera ' + (videoSelect.length + 1);
+            videoSelect.appendChild(option);
+          } else {
+            console.log('Some other kind of source: ', sourceInfo);
+          }
+        }
+      }
+
+      MediaStreamTrack.getSources(gotSources);
+
+
       var height = attrs.height || 300;
       var width = attrs.width || 250;
     
       var video = $window.document.createElement('video');
+
       video.setAttribute('width', width);
       video.setAttribute('height', height);
       video.setAttribute('autoplay', '');
@@ -26,11 +45,14 @@ angular.module('qrScanner', ["ng"]).directive('qrScanner', ['$interval', '$windo
       canvas.setAttribute('id', 'qr-canvas');
       canvas.setAttribute('width', width);
       canvas.setAttribute('height', height);
-      canvas.setAttribute('style', 'display:none;'); 
-    
+      canvas.setAttribute('style', 'display:none;');
+      var videoSelect = $window.document.createElement('select');
+      videoSelect.setAttribute('id','videoSource');
+
       angular.element(element).append(video);
       angular.element(element).append(canvas);
-      var context = canvas.getContext('2d'); 
+      angular.element(element).append(videoSelect);
+      var context = canvas.getContext('2d');
       var stopScan;
     
       var scan = function() {
@@ -54,13 +76,25 @@ angular.module('qrScanner', ["ng"]).directive('qrScanner', ['$interval', '$windo
       }
 
       // Call the getUserMedia method with our callback functions
-      if (navigator.getUserMedia) {
-        navigator.getUserMedia({video: true}, successCallback, function(e) {
-          scope.ngVideoError({error: e});
-        });
-      } else {
-        scope.ngVideoError({error: 'Native web camera streaming (getUserMedia) not supported in this browser.'});
+      var videoSelect = document.querySelector('select#videoSource');
+
+      function startVideo() {
+        var videoSource = videoSelect.value;
+
+        if (navigator.getUserMedia) {
+            navigator.getUserMedia({video: {
+               optional: [{
+                 sourceId: videoSource
+               }]
+              }}, successCallback, function(e) {
+              scope.ngVideoError({error: e});
+            });
+          } else {
+            scope.ngVideoError({error: 'Native web camera streaming (getUserMedia) not supported in this browser.'});
+          }
       }
+
+      startVideo();
 
       qrcode.callback = function(data) {
         scope.ngSuccess({data: data});
