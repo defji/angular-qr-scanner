@@ -1,7 +1,7 @@
 angular-qr-scanner
 ==================
 
-* this verion forked from [qrscanner](https://github.com/sembrestels/angular-qr-scanner)
+* this verion forked from [qrscanner](https://github.com/sembrestels/angular-qr-scanner) by sembrestels
 * added feature: Camera selector (rear/front)
 
 Angular directive for a QR Scanner. It is the angular version of [html5-qrcode](https://github.com/dwa012/html5-qrcode) and uses [jsqrcode](https://github.com/LazarSoft/jsqrcode).
